@@ -1,0 +1,244 @@
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+using namespace std;
+
+enum enQuestionLevel { Easy = 1, Med = 2, Hard = 3, MixLevel = 4 };
+
+enum enOperationType { Add = 1, Sub = 2, Mul = 3,Div = 4, Mix = 5 };
+
+short RandomNumber(short From, short To)
+{
+    short randNum = rand() % (To - From + 1) + From;
+    return randNum;
+}
+
+short ReadHowManyQuestions()
+{
+    short Questions = 0;
+    do
+    {
+        cout << "How many questions do you want to answer?";
+        cin >> Questions;
+    } while (Questions < 1 || Questions > 10);
+    return Questions;
+}
+
+enQuestionLevel ReadQuestionsLevel()
+{
+    short QuestionsLevel = 0;
+    do
+    {
+        cout << "\nEnter Questions Level [1] Easy, [2] Med, [3] Hard, [4] Mix ?";
+        cin >> QuestionsLevel;
+    } while (QuestionsLevel < 1 || QuestionsLevel > 4);
+    return (enQuestionLevel) QuestionsLevel;
+}
+
+enOperationType ReadOperationType()
+{
+    short OperationType = 0;
+    do
+    {
+        cout << "\nEnter Operation Type [1] Add, [2] Sub, [3] Mul, [4] Div, [5] Mix ?";
+        cin >> OperationType;
+    } while (OperationType < 1 || OperationType > 5);
+    return (enOperationType) OperationType;
+}
+
+char OperationSymbol(enOperationType op)
+{
+    switch (op)
+    {
+    case Add: return '+';
+    case Sub: return '-';
+    case Mul: return '*';
+    case Div: return '/';
+    default: return '?';
+    }
+}
+
+int CalculateResult(short n1, short n2, enOperationType op)
+{
+    switch (op)
+    {
+    case Add: return n1 + n2;
+    case Sub: return n1 - n2;
+    case Mul: return n1 * n2;
+    case Div: return n1 / n2;
+      
+    default: return 0;
+    }
+}
+
+void FinalResult(int CorrectAnswers, int Questions)
+{
+    cout << "\n----------------------------\n";
+    
+    if (CorrectAnswers >= Questions * 0.5) // if half the right answers correct it's pass!
+    {
+        cout << "Final Results is Pass :-)\n";
+        system("color 2f"); // Green
+    }
+    else
+    {
+        cout << "Final Result is Fail :-(\n";
+        system("color 4f"); // Red
+    }
+    cout << "----------------------------\n";
+}
+
+string GetLevelText(enQuestionLevel Level)
+{
+    switch (Level)
+    {
+    case Easy: return "Easy";
+    case Med: return "Medium";
+    case Hard: return "Hard";
+    case MixLevel: return "Mix";
+    default: return "Unknown";
+    }
+}
+
+string GetOpTypeText(enOperationType Op)
+{
+    switch (Op)
+    {
+    case Add: return "+";
+    case Sub: return "-";
+    case Mul: return "*";
+    case Div: return "/";
+    case Mix: return "Mixed";
+    default: return "Unknown";
+    }
+}
+
+void ScreenColor(string RoundWinner)
+{
+    if (RoundWinner == "[No Winner]")
+    {
+        system("color 6f"); // Yellow
+    }
+    else if (RoundWinner == "[Player1]")
+    {
+        system("color 2f"); // Green
+    }
+    else if (RoundWinner == "[Computer]")
+    {
+        cout << "\a";
+        system("color 4f"); // Red
+    }
+}
+
+bool AskOneQuestion(int i, int TotalQuestions, short From, short To, enOperationType MainOp)
+{
+    short n1 = RandomNumber(From, To);
+    short n2 = RandomNumber(From, To);
+
+    enOperationType op = MainOp;
+    if (MainOp == Mix)
+    {
+        op = static_cast<enOperationType>(RandomNumber(1, 4));
+    }
+
+    if (op == Div && n2 == 0)
+        n2 = 1;
+
+    int correctAnswer = CalculateResult(n1, n2, op);
+    char symbol = OperationSymbol(op);
+
+    cout << "\nQuestion [" << i << "/" << TotalQuestions << "]\n";
+    cout << n1 << " " << symbol << " " << n2 << " = ?\n";
+
+    int userAnswer;
+    cin >> userAnswer;
+
+    if (userAnswer == correctAnswer) {
+        cout << "Right Answer :-)\n";
+        ScreenColor("[Player1]");
+        return true;
+    }
+    else {
+        cout << "Wrong Answer :-(\n";
+        cout << "The right answer is: " << correctAnswer << "\n";
+        ScreenColor("[Computer]");
+        return false;
+    }
+}
+
+void Results(short Questions, enQuestionLevel Level, enOperationType OpType, short CorrectAnswers)
+{
+    cout << "Number of Questions: " << Questions << "\n";
+    cout << "Questions Level: " << GetLevelText(Level) << "\n";
+    cout << "Operation Type: " << GetOpTypeText(OpType) << "\n";
+    cout << "Number of Right Answers  : " << CorrectAnswers << "\n";
+    cout << "Number of Wrong Answers  : " << Questions - CorrectAnswers << "\n";
+
+}
+
+void GetQuestionRange(enQuestionLevel Level, short& From, short& To)
+{
+    switch (Level)
+    {
+    case Easy:
+        From = 1; To = 10; break;
+    case Med:
+        From = 10; To = 50; break;
+    case Hard:
+        From = 50; To = 100; break;
+    case MixLevel:
+        From = 1; To = 100; break;
+    default:
+        From = 1; To = 10; break;
+    }
+}
+
+void GenerateQuestions(short Questions)
+{
+    enQuestionLevel Level = ReadQuestionsLevel();
+    enOperationType OpType = ReadOperationType();
+
+    short From = 0, To = 0;
+    GetQuestionRange(Level, From, To);
+
+    short CorrectAnswers = 0;
+
+    for (int i = 1; i <= Questions; i++)
+    {
+        if (AskOneQuestion(i, Questions, From, To, OpType))
+            CorrectAnswers++;
+    }
+
+    FinalResult(CorrectAnswers, Questions);
+    Results( Questions, Level, OpType, CorrectAnswers);
+}
+
+void StartQuiz()            
+{
+    char PlayAgain = 'y';
+    do
+    {
+     system("cls");
+     system("color 07"); // black
+    short Questions = ReadHowManyQuestions();
+    GenerateQuestions(Questions);
+   
+    cout << "\nDo you want to play again? Y/N?\n";
+    cin >> PlayAgain;
+   
+    } while (PlayAgain == 'y' || PlayAgain == 'Y');
+
+    system("cls"); // clean the screen
+    system("color 07"); // black
+    return;
+}
+
+int main()
+{
+    srand((unsigned)time(NULL));
+
+    StartQuiz();
+
+    return 0;
+}
